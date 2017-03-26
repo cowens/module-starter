@@ -4,43 +4,58 @@ use warnings;
 use 5.006001;
 use ExtUtils::MakeMaker;
 
-WriteMakefile(
+my %WriteMakefileArgs = (
     NAME                => 'Module::Starter',
     AUTHOR              => 'Andy Lester <andy@petdance.com>',
     VERSION_FROM        => 'lib/Module/Starter.pm',
-    (eval { ExtUtils::MakeMaker->VERSION('6.21') } ? (LICENSE => 'perl') : ()),
-    (eval { ExtUtils::MakeMaker->VERSION('6.48') } ? (MIN_PERL_VERSION => '5.6.1') : ()),
+    LICENSE             => 'perl',
+    MIN_PERL_VERSION    => '5.6.1',
     ABSTRACT_FROM       => 'lib/Module/Starter.pm',
     EXE_FILES           => [ 'bin/module-starter' ],
     PREREQ_PM => {
-        'Test::More'                   => '0',
-        'Test::Harness'                => '0.21',
-        'ExtUtils::Command'            => '0',
-        'File::Spec'                   => '0',
-        'Getopt::Long'                 => '0',
-        'Pod::Usage'                   => '1.21',
-        'parent'                       => '0',
-        'version'                      => '0',
+        'Test::More'        => '0',
+        'Test::Harness'     => '0.21',
+        'ExtUtils::Command' => '0',
+        'File::Spec'        => '0',
+        'Getopt::Long'      => '0',
+        'Pod::Usage'        => '1.21',
     },
-    (! eval { ExtUtils::MakeMaker->VERSION('6.46') } ? () :
-        (META_MERGE => {
-            dynamic_config => 0,
-            'meta-spec'    => { version => 2 },
-            resources      => {
-                homepage   => 'https://github.com/xsawyerx/module-starter',
-                repository => {
-                    type => 'git',
-                    url  => 'https://github.com/xsawyerx/module-starter.git',
-                    web  => 'https://github.com/xsawyerx/module-starter',
-                },
-                bugtracker => { web => 'https://github.com/xsawyerx/module-starter/issues' },
-                x_IRC      => 'irc://irc.perl.org/#toolchain',
+    TEST_REQUIRES => {
+        'parent'  => '0',
+        'version' => '0',
+    },
+    META_MERGE => {
+        dynamic_config => 0,
+        'meta-spec'    => { version => 2 },
+        resources      => {
+            homepage   => 'https://github.com/xsawyerx/module-starter',
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/xsawyerx/module-starter.git',
+                web  => 'https://github.com/xsawyerx/module-starter',
             },
-        })
-    ),
+            bugtracker => { web => 'https://github.com/xsawyerx/module-starter/issues' },
+            x_IRC      => 'irc://irc.perl.org/#toolchain',
+        },
+    },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Module-Release-*' },
 );
+
+delete $WriteMakefileArgs{LICENSE}
+    unless eval { ExtUtils::MakeMaker->VERSION('6.21') };
+delete $WriteMakefileArgs{META_MERGE}
+    unless eval { ExtUtils::MakeMaker->VERSION('6.46') };
+delete $WriteMakefileArgs{MIN_PERL_VERSION}
+    unless eval { ExtUtils::MakeMaker->VERSION('6.48') };
+
+unless (eval { ExtUtils::MakeMaker->VERSION('6.64') }) {
+    my $test_requires = delete $WriteMakefileArgs{TEST_REQUIRES};
+    $WriteMakefileArgs{PREREQ_PM}{$_} = $test_requires->{$_}
+        for keys %$test_requires;
+}
+
+WriteMakefile(%WriteMakefileArgs);
 
 sub MY::postamble {
     my $postamble = <<'MAKE_FRAG';
